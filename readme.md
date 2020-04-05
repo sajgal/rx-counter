@@ -6,3 +6,4 @@
 - React JS
 - RxJS
 - Styled Components
+- Local Storage
