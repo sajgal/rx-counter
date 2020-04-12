@@ -181,7 +181,6 @@ const Counter = () => {
   useEffect(() => {
     const timerSubscription = timer$.pipe(
       filter(() => startTime !== undefined && endTime === undefined),
-      tap(() => console.log(startTime)),
       map(() => moment.duration(moment().diff(startTime))),
       map((duration) => {
         const inSeconds = duration.asSeconds();
