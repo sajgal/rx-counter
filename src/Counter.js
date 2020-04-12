@@ -23,14 +23,17 @@ const Wrapper = styled.div`
 `;
 
 const Display = styled.div`
-  /* display: flex; */
-  text-align: center;
+  display: grid;
+  grid-gap: 5px;
+  grid-template:
+    'count duration'
+    'count velocity';
 `;
 
 const Count = styled.div`
-  /* display: flex; */
-  /* align-items: center; */
-  /* justify-content: center; */
+  grid-area: count;
+  justify-self: right;
+  align-self: center;
   color: ${({ count }) => {
     if (count < 1) {
       return 'var(--color-red)';
@@ -40,8 +43,28 @@ const Count = styled.div`
       return 'var(--color-green)';
     }
   }};
-  font-size: 3em;
+  font-size: 5em;
   font-weight: 700;
+  padding-right: 10px;
+`;
+
+const Duration = styled.div`
+  grid-area: duration;
+  align-self: flex-end;
+  font-size: 1.3em;
+`;
+
+const Velocity = styled.div`
+  grid-area: velocity;
+`;
+
+const Bold = styled.span`
+  font-weight: bold;
+`;
+
+const Time = styled.span`
+  color: var(--color-red);
+  font-weight: bold;
 `;
 
 const ButtonsWrapper = styled.div`
@@ -158,6 +181,7 @@ const Counter = () => {
   useEffect(() => {
     const timerSubscription = timer$.pipe(
       filter(() => startTime !== undefined && endTime === undefined),
+      tap(() => console.log(startTime)),
       map(() => moment.duration(moment().diff(startTime))),
       map((duration) => {
         const inSeconds = duration.asSeconds();
@@ -183,16 +207,23 @@ const Counter = () => {
   }, [startTime, endTime, duration, timer$]);
 
   const velocity = {
-    perSecond: duration.seconds > 0 ? (count / duration.seconds).toFixed(2) : '-',
-    perMinute: duration.seconds > 0 ? (count / (60 / duration.seconds)).toFixed(2) : '-',
+    perMinute: duration.seconds > 0
+      ? ((count / duration.seconds) * 60).toFixed(2)
+      : '-',
+    perHour: duration.seconds > 0
+      ? ((count / duration.seconds) * (60 * 60)).toFixed(2)
+      : '-',
   }
 
   return (
     <Wrapper>
       <Display>
         <Count count={count}>{count}</Count>
-        <div>Elapsed time {duration.string}</div>
-        <div>Velocity per minute: {velocity.perMinute}, per sec: {velocity.perSecond}</div>
+        <Duration>Elapsed time <Time>{duration.string}</Time></Duration>
+        <Velocity>
+          <div><Bold>{velocity.perMinute}</Bold> reps per minute</div>
+          <div><Bold>{velocity.perHour}</Bold> reps per hour</div>
+        </Velocity>
       </Display>
       <ButtonsWrapper ref={buttonsWrapperRef}>
         {buttons.map((button) => <Button
