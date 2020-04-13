@@ -24,16 +24,24 @@ const Wrapper = styled.div`
 `;
 
 const Display = styled.div`
+  text-align: center;
   display: grid;
   grid-gap: 5px;
   grid-template:
-    'count duration'
-    'count velocity';
+    'count'
+    'duration'
+    'velocity';
+
+  @media (min-width: 320px) {
+    grid-template:
+      'count duration'
+      'count velocity';
+  }
 `;
 
 const Count = styled.div`
   grid-area: count;
-  justify-self: right;
+  justify-self: center;
   align-self: center;
   color: ${({ count }) => {
     if (count < 1) {
@@ -47,16 +55,30 @@ const Count = styled.div`
   font-size: 5em;
   font-weight: 700;
   padding-right: 10px;
+
+  @media (min-width: 320px) {
+    justify-self: right;
+  }
 `;
 
 const Duration = styled.div`
   grid-area: duration;
   align-self: flex-end;
+  justify-self: center;
   font-size: 1.3em;
+
+  @media (min-width: 320px) {
+    justify-self: left;
+  }
 `;
 
 const Velocity = styled.div`
   grid-area: velocity;
+  justify-self: center;
+
+  @media (min-width: 320px) {
+    justify-self: left;
+  }
 `;
 
 const Bold = styled.span`
@@ -70,12 +92,22 @@ const Time = styled.span`
 
 const ButtonsWrapper = styled.div`
   display: grid;
-  grid-template-rows: repeat(2, 70px) 50px;
-  grid-template-columns: repeat(3, 110px);
-  grid-gap: 30px;
+  grid-gap: 15px;
   justify-content: center;
   background: var(--color-black);
   padding-top: 30px;
+  grid-template-columns: repeat(1, 90%);
+
+  @media (min-width: 320px) {
+    grid-template-rows: repeat(2, 50px) 40px;
+    grid-template-columns: repeat(3, 60px);
+  }
+
+  @media (min-width: 425px) {
+    grid-gap: 30px;
+    grid-template-rows: repeat(2, 70px) 50px;
+    grid-template-columns: repeat(3, 110px);
+  }
 `;
 
 const Button = styled.button`
