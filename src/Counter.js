@@ -38,6 +38,7 @@ const Display = styled.div`
     grid-template:
       'count duration'
       'count velocity';
+    text-align: left;
   }
 `;
 
