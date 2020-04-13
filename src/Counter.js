@@ -8,6 +8,7 @@ import styled from 'styled-components';
 const LOCAL_STORAGE_COUNT = 'count';
 const LOCAL_STORAGE_START = 'start';
 const LOCAL_STORAGE_END = 'end';
+const LOCAL_STORAGE_DURATION = 'duration';
 const FUNCTION_START = 'start';
 const FUNCTION_STOP = 'stop';
 const FUNCTION_RESET = 'reset';
@@ -104,11 +105,22 @@ const Button = styled.button`
 
 const Counter = () => {
   const [count, setCount] = useState(parseInt(localStorage.getItem(LOCAL_STORAGE_COUNT)) || 0);
-  const [startTime, setStartTime] = useState(localStorage.getItem(LOCAL_STORAGE_START) || undefined);
-  const [endTime, setEndTime] = useState(localStorage.getItem(LOCAL_STORAGE_END) || undefined);
+  const [startTime, setStartTime] = useState(
+    localStorage.getItem(LOCAL_STORAGE_START)
+      ? moment(localStorage.getItem(LOCAL_STORAGE_START))
+      : undefined
+  );
+  const [endTime, setEndTime] = useState(
+    localStorage.getItem(LOCAL_STORAGE_END)
+      ? moment(localStorage.getItem(LOCAL_STORAGE_END))
+      : undefined
+  );
   const buttonsWrapperRef = useRef();
   const timer$ = interval(1000);
-  const [duration, setDuration] = useState(DEFAULT_DURATION);
+  const [duration, setDuration] = useState(
+    JSON.parse(localStorage.getItem(LOCAL_STORAGE_DURATION))
+    || DEFAULT_DURATION
+  );
 
   const buttons = [
     { label: '+10', value: 10 },
@@ -149,14 +161,14 @@ const Counter = () => {
       filter((buttonFunction) => buttonFunction === FUNCTION_START),
       map(() => moment()),
       tap((start) => setStartTime(start)),
-      tap((start) => localStorage.setItem(LOCAL_STORAGE_START, start)),
+      tap((start) => localStorage.setItem(LOCAL_STORAGE_START, start.format())),
     ).subscribe();
 
     const stop$ = click$.pipe(
       filter((buttonFunction) => buttonFunction === FUNCTION_STOP),
       map(() => moment()),
       tap((end) => setEndTime(end)),
-      tap((end) => localStorage.setItem(LOCAL_STORAGE_END, end)),
+      tap((end) => localStorage.setItem(LOCAL_STORAGE_END, end.format())),
     ).subscribe();
 
     const reset$ = click$.pipe(
@@ -200,6 +212,10 @@ const Counter = () => {
         }
       }),
       tap(setDuration),
+      tap((duration) => localStorage.setItem(
+        LOCAL_STORAGE_DURATION,
+        JSON.stringify(duration)
+      )),
     ).subscribe();
 
     return () => timerSubscription.unsubscribe();
