@@ -102,8 +102,8 @@ const ButtonsWrapper = styled.div`
   grid-template-columns: repeat(1, 90%);
 
   @media (min-width: 320px) {
-    grid-template-rows: repeat(2, 50px) 40px;
-    grid-template-columns: repeat(3, 60px);
+    grid-template-rows: repeat(2, 60px) 50px;
+    grid-template-columns: repeat(3, 85px);
   }
 
   @media (min-width: 425px) {
