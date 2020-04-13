@@ -1,9 +1,11 @@
-import React, { useRef, useEffect } from 'react';
-import { fromEvent, interval } from 'rxjs';
-import { tap, map, filter } from 'rxjs/operators'
+import React, { useRef } from 'react';
 import { useState } from 'react';
 import moment from 'moment';
 import styled from 'styled-components';
+
+import useCountButtons from './hooks/useCountButtons';
+import useFunctionButtons from './hooks/useFunctionButtons';
+import useDuration from './hooks/useDuration';
 
 const LOCAL_STORAGE_COUNT = 'count';
 const LOCAL_STORAGE_START = 'start';
@@ -148,7 +150,6 @@ const Counter = () => {
       : undefined
   );
   const buttonsWrapperRef = useRef();
-  const timer$ = interval(1000);
   const [duration, setDuration] = useState(
     JSON.parse(localStorage.getItem(LOCAL_STORAGE_DURATION))
     || DEFAULT_DURATION
@@ -167,91 +168,38 @@ const Counter = () => {
   ];
 
   /* Sets listeners for Value Buttons */
-  useEffect(() => {
-    const click$ = fromEvent(buttonsWrapperRef.current, 'click')
-      .pipe(
-        filter((event) => event.srcElement.dataset.value),
-        map(event => parseInt(event.srcElement.dataset.value)),
-        map((value) => count + value),
-        tap(setCount),
-        tap(newCountValue => localStorage.setItem(LOCAL_STORAGE_COUNT, newCountValue)),
-      )
-      .subscribe();
+  useCountButtons(
+    buttonsWrapperRef,
+    count,
+    LOCAL_STORAGE_COUNT,
+    setCount,
+  );
 
-    return () => click$.unsubscribe();
-  }, [count, buttonsWrapperRef]);
-
-  /* Sets listeners for Start & End button */
-  useEffect(() => {
-    const click$ = fromEvent(buttonsWrapperRef.current, 'click')
-      .pipe(
-        filter((event) => event.srcElement.dataset.function),
-        map((event) => event.srcElement.dataset.function),
-      );
-
-    const start$ = click$.pipe(
-      filter((buttonFunction) => buttonFunction === FUNCTION_START),
-      map(() => moment()),
-      tap((start) => setStartTime(start)),
-      tap((start) => localStorage.setItem(LOCAL_STORAGE_START, start.format())),
-    ).subscribe();
-
-    const stop$ = click$.pipe(
-      filter((buttonFunction) => buttonFunction === FUNCTION_STOP),
-      map(() => moment()),
-      tap((end) => setEndTime(end)),
-      tap((end) => localStorage.setItem(LOCAL_STORAGE_END, end.format())),
-    ).subscribe();
-
-    const reset$ = click$.pipe(
-      filter((buttonFunction) => buttonFunction === FUNCTION_RESET),
-      tap(() => {
-        setStartTime(undefined);
-        setEndTime(undefined);
-        setCount(0);
-        setDuration(DEFAULT_DURATION);
-        localStorage.clear();
-      }),
-    ).subscribe();
-
-    return () => {
-      start$.unsubscribe();
-      stop$.unsubscribe();
-      reset$.unsubscribe();
-    }
-  }, [startTime, endTime, buttonsWrapperRef]);
+  /* Sets listeners for Start, End & Reset button */
+  useFunctionButtons(
+    buttonsWrapperRef,
+    DEFAULT_DURATION,
+    endTime,
+    FUNCTION_RESET,
+    FUNCTION_START,
+    FUNCTION_STOP,
+    LOCAL_STORAGE_END,
+    LOCAL_STORAGE_START,
+    setCount,
+    setDuration,
+    setEndTime,
+    setStartTime,
+    startTime,
+  );
 
   /* Sets duration every second */
-  useEffect(() => {
-    const timerSubscription = timer$.pipe(
-      filter(() => startTime !== undefined && endTime === undefined),
-      map(() => moment.duration(moment().diff(startTime))),
-      map((duration) => {
-        const inSeconds = duration.asSeconds();
-
-        const hours = duration.hours();
-        duration.subtract(moment.duration(hours, 'hours'));
-
-        const minutes = duration.minutes();
-        duration.subtract(moment.duration(minutes, 'minutes'));
-
-        const seconds = duration.seconds();
-        const pad = (number) => number < 10 ? `0${number}` : number;
-
-        return {
-          seconds: parseInt(inSeconds),
-          string: `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`,
-        }
-      }),
-      tap(setDuration),
-      tap((duration) => localStorage.setItem(
-        LOCAL_STORAGE_DURATION,
-        JSON.stringify(duration)
-      )),
-    ).subscribe();
-
-    return () => timerSubscription.unsubscribe();
-  }, [startTime, endTime, duration, timer$]);
+  useDuration(
+    duration,
+    endTime,
+    LOCAL_STORAGE_DURATION,
+    setDuration,
+    startTime,
+  );
 
   const velocity = {
     perMinute: duration.seconds > 0
@@ -273,7 +221,7 @@ const Counter = () => {
         </Velocity>
       </Display>
       <ButtonsWrapper ref={buttonsWrapperRef}>
-        {buttons.map((button) => <Button
+        {!!buttons && buttons.map((button) => <Button
           ref={button.ref}
           key={button.label}
           data-value={button.value}
