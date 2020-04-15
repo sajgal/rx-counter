@@ -120,6 +120,16 @@ const Button = styled.button`
     color: var(--color-white);
   }
 
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+
+    &:hover {
+      background: var(--color-white);
+      color: var(--color-black);
+    }
+  }
+
   &:last-child {
       background: var(--color-black);
       border: 2px solid var(--color-red);
@@ -196,6 +206,12 @@ const Counter = () => {
           key={button.label}
           data-value={button.value}
           data-function={button.function}
+          disabled={
+            (button.function === FUNCTION_START && start)
+            || (button.function === FUNCTION_RESET && !end && !start && !count)
+            || (button.function === FUNCTION_STOP && end)
+            || (button.function === FUNCTION_STOP && !end && !start)
+          }
         >
           {button.label}
         </Button>)}
