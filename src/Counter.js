@@ -207,8 +207,8 @@ const Counter = () => {
           data-value={button.value}
           data-function={button.function}
           disabled={
-            (button.function === FUNCTION_START && start)
-            || (button.function === FUNCTION_RESET && !end && !start && !count)
+            (button.function === FUNCTION_RESET && !end && !start && !count)
+            || (button.function === FUNCTION_START && start)
             || (button.function === FUNCTION_STOP && end)
             || (button.function === FUNCTION_STOP && !end && !start)
           }
