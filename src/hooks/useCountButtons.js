@@ -1,14 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { fromEvent } from 'rxjs';
 import { tap, map, filter } from 'rxjs/operators'
+
+const LOCAL_STORAGE_COUNT = 'count';
 
 /* Sets listeners for Value Buttons */
 function useCountButtons(
   buttonsWrapperRef,
-  count,
-  localStorageCountLabel,
-  setCount,
 ) {
+  const [count, setCount] = useState(parseInt(localStorage.getItem(LOCAL_STORAGE_COUNT)) || 0);
+
   useEffect(() => {
     const click$ = fromEvent(buttonsWrapperRef.current, 'click')
       .pipe(
@@ -16,7 +17,7 @@ function useCountButtons(
         map(event => parseInt(event.srcElement.dataset.value)),
         map((value) => count + value),
         tap(setCount),
-        tap(newCountValue => localStorage.setItem(localStorageCountLabel, newCountValue)),
+        tap(newCountValue => localStorage.setItem(LOCAL_STORAGE_COUNT, newCountValue)),
       )
       .subscribe();
 
@@ -24,9 +25,9 @@ function useCountButtons(
   }, [
     buttonsWrapperRef,
     count,
-    localStorageCountLabel,
-    setCount,
   ]);
+
+  return [count, setCount];
 };
 
 export default useCountButtons;

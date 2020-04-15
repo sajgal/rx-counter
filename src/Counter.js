@@ -1,20 +1,14 @@
 import React, { useRef } from 'react';
-import { useState } from 'react';
-import moment from 'moment';
 import styled from 'styled-components';
 
 import useCountButtons from './hooks/useCountButtons';
-import useFunctionButtons from './hooks/useFunctionButtons';
 import useDuration from './hooks/useDuration';
+import useResetButton from './hooks/useResetButton';
+import useStartStopButtons from './hooks/useStartStopButtons';
 
-const LOCAL_STORAGE_COUNT = 'count';
-const LOCAL_STORAGE_START = 'start';
-const LOCAL_STORAGE_END = 'end';
-const LOCAL_STORAGE_DURATION = 'duration';
 const FUNCTION_START = 'start';
 const FUNCTION_STOP = 'stop';
 const FUNCTION_RESET = 'reset';
-const DEFAULT_DURATION = { string: '00:00:00', seconds: 0 };
 
 const Wrapper = styled.div`
   display: grid;
@@ -139,22 +133,7 @@ const Button = styled.button`
 `;
 
 const Counter = () => {
-  const [count, setCount] = useState(parseInt(localStorage.getItem(LOCAL_STORAGE_COUNT)) || 0);
-  const [startTime, setStartTime] = useState(
-    localStorage.getItem(LOCAL_STORAGE_START)
-      ? moment(localStorage.getItem(LOCAL_STORAGE_START))
-      : undefined
-  );
-  const [endTime, setEndTime] = useState(
-    localStorage.getItem(LOCAL_STORAGE_END)
-      ? moment(localStorage.getItem(LOCAL_STORAGE_END))
-      : undefined
-  );
   const buttonsWrapperRef = useRef();
-  const [duration, setDuration] = useState(
-    JSON.parse(localStorage.getItem(LOCAL_STORAGE_DURATION))
-    || DEFAULT_DURATION
-  );
 
   const buttons = [
     { label: '+10', value: 10 },
@@ -169,37 +148,27 @@ const Counter = () => {
   ];
 
   /* Sets listeners for Value Buttons */
-  useCountButtons(
-    buttonsWrapperRef,
-    count,
-    LOCAL_STORAGE_COUNT,
-    setCount,
-  );
+  const [count, setCount] = useCountButtons(buttonsWrapperRef);
 
-  /* Sets listeners for Start, End & Reset button */
-  useFunctionButtons(
+  /* Sets listeners for Start & End buttons */
+  const [start, end, setStart, setEnd] = useStartStopButtons(
     buttonsWrapperRef,
-    DEFAULT_DURATION,
-    endTime,
-    FUNCTION_RESET,
     FUNCTION_START,
     FUNCTION_STOP,
-    LOCAL_STORAGE_END,
-    LOCAL_STORAGE_START,
-    setCount,
-    setDuration,
-    setEndTime,
-    setStartTime,
-    startTime,
   );
 
-  /* Sets duration every second */
-  useDuration(
-    duration,
-    endTime,
-    LOCAL_STORAGE_DURATION,
+  /* Sets duration */
+  const [duration, defaultDuration, setDuration] = useDuration(end, start);
+
+  /* Sets listeners for Reset button */
+  useResetButton(
+    buttonsWrapperRef,
+    defaultDuration,
+    FUNCTION_RESET,
+    setCount,
     setDuration,
-    startTime,
+    setEnd,
+    setStart,
   );
 
   const velocity = {

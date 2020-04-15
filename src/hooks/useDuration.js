@@ -1,17 +1,21 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { interval } from 'rxjs';
 import { tap, map, filter } from 'rxjs/operators'
 import moment from 'moment';
 
+const LOCAL_STORAGE_DURATION = 'duration';
+const DEFAULT_DURATION = { string: '00:00:00', seconds: 0 };
+
 /* Sets duration every second */
 const useCountButtons = (
-  duration,
   endTime,
-  localStorageDuration,
-  setDuration,
   startTime,
 ) => {
   const timer$ = interval(1000);
+  const [duration, setDuration] = useState(
+    JSON.parse(localStorage.getItem(LOCAL_STORAGE_DURATION))
+    || DEFAULT_DURATION
+  );
 
   useEffect(() => {
     const timerSubscription = timer$.pipe(
@@ -36,20 +40,19 @@ const useCountButtons = (
       }),
       tap(setDuration),
       tap((duration) => localStorage.setItem(
-        localStorageDuration,
+        LOCAL_STORAGE_DURATION,
         JSON.stringify(duration)
       )),
     ).subscribe();
 
     return () => timerSubscription.unsubscribe();
   }, [
-    duration,
     endTime,
-    localStorageDuration,
-    setDuration,
     startTime,
     timer$,
   ]);
+
+  return [duration, DEFAULT_DURATION, setDuration];
 };
 
 export default useCountButtons;

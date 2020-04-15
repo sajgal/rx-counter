@@ -1,23 +1,16 @@
 import { useEffect } from 'react';
 import { fromEvent } from 'rxjs';
 import { tap, map, filter } from 'rxjs/operators'
-import moment from 'moment';
 
-/* Sets listeners for Start, End & Reset button */
+/* Sets listeners for Reset button */
 const useFunctionButtons = (
   buttonsWrapperRef,
   defaultDuration,
-  endTime,
   functionResetLabel,
-  functionStartLabel,
-  functionStopLabel,
-  localStorageEndLabel,
-  localStorageStartLabel,
   setCount,
   setDuration,
   setEndTime,
   setStartTime,
-  startTime,
 ) => {
   useEffect(() => {
     const click$ = fromEvent(buttonsWrapperRef.current, 'click')
@@ -25,20 +18,6 @@ const useFunctionButtons = (
         filter((event) => event.srcElement.dataset.function),
         map((event) => event.srcElement.dataset.function),
       );
-
-    const start$ = click$.pipe(
-      filter((buttonFunction) => buttonFunction === functionStartLabel),
-      map(() => moment()),
-      tap((start) => setStartTime(start)),
-      tap((start) => localStorage.setItem(localStorageStartLabel, start.format())),
-    ).subscribe();
-
-    const stop$ = click$.pipe(
-      filter((buttonFunction) => buttonFunction === functionStopLabel),
-      map(() => moment()),
-      tap((end) => setEndTime(end)),
-      tap((end) => localStorage.setItem(localStorageEndLabel, end.format())),
-    ).subscribe();
 
     const reset$ = click$.pipe(
       filter((buttonFunction) => buttonFunction === functionResetLabel),
@@ -52,24 +31,16 @@ const useFunctionButtons = (
     ).subscribe();
 
     return () => {
-      start$.unsubscribe();
-      stop$.unsubscribe();
       reset$.unsubscribe();
     }
   }, [
     buttonsWrapperRef,
     defaultDuration,
-    endTime,
     functionResetLabel,
-    functionStartLabel,
-    functionStopLabel,
-    localStorageEndLabel,
-    localStorageStartLabel,
     setCount,
     setDuration,
     setEndTime,
     setStartTime,
-    startTime,
   ]);
 };
 
