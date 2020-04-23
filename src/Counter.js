@@ -209,6 +209,7 @@ const PlayEveryValueInput = styled.input`
 const Counter = () => {
   const buttonsWrapperRef = useRef(null);
   const audioPlayer = useRef(null);
+  const playEveryValueInputRef = useRef(null);
   const [isOptionBarVisible, setIsOptionBarVisible] = useState(false);
   const [playEveryValue, setPlayEveryValue] = useState(0);
   const [playEveryUnit, setPlayEveryUnit] = useState(SECONDS);
@@ -260,6 +261,7 @@ const Counter = () => {
 
   const onOptionsToggle = () => {
     setIsOptionBarVisible(!isOptionBarVisible);
+    playEveryValueInputRef.current.focus();
   }
 
   const onPlayEveryValueChange = (event) => {
@@ -307,7 +309,13 @@ const Counter = () => {
           </OptionsButton>
           <Options visible={isOptionBarVisible}>
             <Label htmlFor="playEveryValue">Play sound every</Label>
-            <PlayEveryValueInput type="text" id="playEveryValue" onChange={onPlayEveryValueChange} value={playEveryValue} />
+            <PlayEveryValueInput
+              type="text"
+              id="playEveryValue"
+              ref={playEveryValueInputRef}
+              onChange={onPlayEveryValueChange}
+              value={playEveryValue}
+            />
             <select name="time-unit" id="time-unit" onChange={onPlayEveryUnitChange} value={playEveryUnit}>
               <option value={SECONDS}>second{playEveryValue > 1 ? 's' : ''}</option>
               <option value={MINUTES}>minute{playEveryValue > 1 ? 's' : ''}</option>
