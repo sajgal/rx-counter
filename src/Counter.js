@@ -261,7 +261,7 @@ const Counter = () => {
 
   const onOptionsToggle = () => {
     setIsOptionBarVisible(!isOptionBarVisible);
-    playEveryValueInputRef.current.focus();
+    !isOptionBarVisible && playEveryValueInputRef.current.focus();
   }
 
   const onPlayEveryValueChange = (event) => {
