@@ -1,14 +1,28 @@
-import React, { useRef } from 'react';
-import styled from 'styled-components';
+import React, { useRef, useState } from 'react';
+import styled, { css } from 'styled-components';
+import { IoIosCog } from 'react-icons/io'
+import { RiCloseLine } from 'react-icons/ri'
 
 import useCountButtons from './hooks/useCountButtons';
 import useDuration from './hooks/useDuration';
 import useResetButton from './hooks/useResetButton';
 import useStartStopButtons from './hooks/useStartStopButtons';
+import sound from './choir.m4a';
 
 const FUNCTION_START = 'start';
 const FUNCTION_STOP = 'stop';
 const FUNCTION_RESET = 'reset';
+const SECONDS = 'seconds';
+const MINUTES = 'minutes';
+const AUDIO_DURATION_IN_SECONDS = 3;
+
+const visuallyHidden = css`
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  height: 1px; width: 1px;
+  margin: -1px; padding: 0; border: 0;
+`;
 
 const Wrapper = styled.div`
   display: grid;
@@ -87,20 +101,53 @@ const Time = styled.span`
   font-weight: bold;
 `;
 
+const Controlls = styled.div`
+  background: var(--color-black);
+  padding-top: 30px;
+  display: grid;
+  grid-auto-flow: row;
+  max-width: 100vw;
+  grid-gap: 10px;
+
+  @media (min-width: 420px) {
+    grid-auto-flow: column;
+  }
+`;
+
+const OptionsWrapper = styled.div`
+  color: var(--color-white);
+  width: 90%;
+  display: grid;
+  justify-self: center;
+  margin-bottom: 90px;
+
+  @media (min-width: 420px) {
+    display: block;
+    justify-self: right;
+    width: 100%;
+  }
+`;
+
+const Options = styled.div`
+  ${({ visible }) => !visible && visuallyHidden};
+  margin-top: 20px;
+  border-left: 1px solid var(--color-white);
+  padding-left: 5px;
+`;
+
 const ButtonsWrapper = styled.div`
   display: grid;
   grid-gap: 15px;
   justify-content: center;
-  background: var(--color-black);
-  padding-top: 30px;
   grid-template-columns: repeat(1, 90%);
 
-  @media (min-width: 320px) {
+  @media (min-width: 420px) {
     grid-template-rows: repeat(2, 60px) 50px;
     grid-template-columns: repeat(3, 85px);
+    justify-content: right;
   }
 
-  @media (min-width: 425px) {
+  @media (min-width: 500px) {
     grid-gap: 30px;
     grid-template-rows: repeat(2, 70px) 50px;
     grid-template-columns: repeat(3, 110px);
@@ -142,8 +189,29 @@ const Button = styled.button`
   }
 `;
 
+const OptionsButton = styled(Button)`
+  display: flex;
+  padding: 0 10px;
+  height: 30px;
+  font-size: 1.5em;
+  justify-content: center;
+`;
+
+const Label = styled.label`
+  display: block;
+`;
+
+const PlayEveryValueInput = styled.input`
+  margin: 5px 5px 7px 0;
+  width: 40px;
+`;
+
 const Counter = () => {
-  const buttonsWrapperRef = useRef();
+  const buttonsWrapperRef = useRef(null);
+  const audioPlayer = useRef(null);
+  const [isOptionBarVisible, setIsOptionBarVisible] = useState(false);
+  const [playEveryValue, setPlayEveryValue] = useState(0);
+  const [playEveryUnit, setPlayEveryUnit] = useState(SECONDS);
 
   const buttons = [
     { label: '+10', value: 10 },
@@ -190,6 +258,22 @@ const Counter = () => {
       : '-',
   }
 
+  const onOptionsToggle = () => {
+    setIsOptionBarVisible(!isOptionBarVisible);
+  }
+
+  const onPlayEveryValueChange = (event) => {
+    setPlayEveryValue(event.target.value);
+  }
+
+  const onPlayEveryUnitChange = (event) => {
+    setPlayEveryUnit(event.target.value);
+  }
+
+  const getPlayEveryXSeconds = () => {
+    return playEveryUnit === SECONDS ? playEveryValue : playEveryValue * 60;
+  };
+
   return (
     <Wrapper>
       <Display>
@@ -200,22 +284,47 @@ const Counter = () => {
           <div><Bold>{velocity.perHour}</Bold> reps per hour</div>
         </Velocity>
       </Display>
-      <ButtonsWrapper ref={buttonsWrapperRef}>
-        {!!buttons && buttons.map((button) => <Button
-          ref={button.ref}
-          key={button.label}
-          data-value={button.value}
-          data-function={button.function}
-          disabled={
-            (button.function === FUNCTION_RESET && !end && !start && !count)
-            || (button.function === FUNCTION_START && start)
-            || (button.function === FUNCTION_STOP && end)
-            || (button.function === FUNCTION_STOP && !end && !start)
-          }
-        >
-          {button.label}
-        </Button>)}
-      </ButtonsWrapper>
+      <Controlls>
+        <ButtonsWrapper ref={buttonsWrapperRef}>
+          {!!buttons && buttons.map((button) => <Button
+            ref={button.ref}
+            key={button.label}
+            data-value={button.value}
+            data-function={button.function}
+            disabled={
+              (button.function === FUNCTION_RESET && !end && !start && !count)
+              || (button.function === FUNCTION_START && start)
+              || (button.function === FUNCTION_STOP && end)
+              || (button.function === FUNCTION_STOP && !end && !start)
+            }
+          >
+            {button.label}
+          </Button>)}
+        </ButtonsWrapper>
+        <OptionsWrapper>
+          <OptionsButton onClick={onOptionsToggle}>
+            {isOptionBarVisible ? <RiCloseLine /> : <IoIosCog />}
+          </OptionsButton>
+          <Options visible={isOptionBarVisible}>
+            <Label htmlFor="playEveryValue">Play sound every</Label>
+            <PlayEveryValueInput type="text" id="playEveryValue" onChange={onPlayEveryValueChange} value={playEveryValue} />
+            <select name="time-unit" id="time-unit" onChange={onPlayEveryUnitChange} value={playEveryUnit}>
+              <option value={SECONDS}>second{playEveryValue > 1 ? 's' : ''}</option>
+              <option value={MINUTES}>minute{playEveryValue > 1 ? 's' : ''}</option>
+            </select>
+
+            {
+              (
+                start //don't play if counter not running
+                && !end //don't play if workout ended
+                && duration.seconds > AUDIO_DURATION_IN_SECONDS //don't play at the beginning
+                && duration.seconds % getPlayEveryXSeconds() <= AUDIO_DURATION_IN_SECONDS //keep <audio> in the DOM while playing
+              )
+              && <audio ref={audioPlayer} src={sound} autoPlay />
+            }
+          </Options>
+        </OptionsWrapper>
+      </Controlls>
     </Wrapper>
   );
 };
